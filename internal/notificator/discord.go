@@ -1,6 +1,8 @@
 package notificator
 
-import "github.com/bwmarrin/discordgo"
+import (
+	"github.com/bwmarrin/discordgo"
+)
 
 // Discord represents a Discord notificator.
 type Discord struct {
@@ -20,6 +22,16 @@ func newDiscordConnection(dg *discordgo.Session) error {
 	return dg.Open()
 }
 
+// getDiscordId gets the Discord ID of a user.
+func getDiscordId(dg *discordgo.Session, username string) (string, error) {
+	user, err := dg.User("@" + username)
+	if err != nil {
+		return "", err
+	}
+
+	return user.ID, nil
+}
+
 // NewDiscord creates a new Discord notificator.
 func NewDiscord(tokenBot, recepientId string) (*Discord, error) {
 	// create a new Discord session
@@ -28,9 +40,15 @@ func NewDiscord(tokenBot, recepientId string) (*Discord, error) {
 		return nil, err
 	}
 
+	// get Discord ID of the user
+	exactRecepientId, err := getDiscordId(dg, recepientId)
+	if err != nil {
+		exactRecepientId = recepientId
+	}
+
 	return &Discord{
 		TokenBot:    tokenBot,
-		RecepientId: recepientId,
+		RecepientId: exactRecepientId,
 		Message:     "",
 		Session:     dg,
 	}, nil
